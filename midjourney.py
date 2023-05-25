@@ -96,7 +96,7 @@ class ImageInfo:
         return hash(id(self.content))
 
     def __str__(self):
-        return "content:%s , proxy_url:%d" % (self.content, self.proxy_url)
+        return "content:%s , proxy_url:%s" % (self.content, self.proxy_url)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
