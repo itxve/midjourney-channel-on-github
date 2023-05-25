@@ -12,6 +12,7 @@ print(
 
 
 if count is not None:
+    count = int(count)
     if count > 200:
         count = 200
 else:
