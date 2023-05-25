@@ -1,0 +1,38 @@
+# Update Newest Midjourney channel‘s image
+name: Update Midjourney Image
+
+on:
+  # every 8 minute
+  schedule:
+    - cron: "8 * * * *"
+
+  # Manual updates
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip" # caching pip dependencies
+      - name: Install requirements
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run Task
+        env:
+          MIDJOURNEY_CONFIG: '{"channelUrl":"989268270618136586","authorization":"ODM1OTQzOTYxNTg3NDgyNzE0.GdmgpT.zchSkfQmixNFKnzKszmDeNpSc81PsL5BkzLD-Q","limit":50,"showCount":5}'
+        run: python midjourney.py
+
+      - name: Commit Newest Node
+        # Condition to prevent unintended automatic workflow
+        # Change or comment out this line for automatic workflow on forks
+        if: ${{ github.repository == 'itxve/midjourney-channel-on-github' }}
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add README.md
+          git commit -m "update README.md" && git push || echo "no change"
