@@ -2,12 +2,25 @@
 name: Update Midjourney Image
 
 on:
-  # every 8 minute
-  schedule:
-    - cron: "8 * * * *"
+  # # every 8 minute
+  # schedule:
+  #   - cron: "8 * * * *"
 
   # Manual updates
   workflow_dispatch:
+    inputs:
+      Authorization:
+        description: "User Authorization"
+        required: true
+        default: "Authorization"
+      Channel:
+        description: "channel 地址"
+        required: true
+        default: "channel"
+      Count:
+        description: "爬取个数 max:200"
+        required: true
+        default: "20"
 
 jobs:
   update:
@@ -24,7 +37,10 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Run Task
         env:
-          MIDJOURNEY_CONFIG: '{"channelUrl":"989268270618136586","authorization":"ODM1OTQzOTYxNTg3NDgyNzE0.GdmgpT.zchSkfQmixNFKnzKszmDeNpSc81PsL5BkzLD-Q","limit":50,"showCount":5}'
+          Channel: ${{github.event.inputs.Channel}}
+          Authorization: ${{github.event.inputs.Authorization}}
+          Count: ${{github.event.inputs.Count}}
+
         run: python midjourney.py
 
       - name: Commit Newest Node
@@ -35,4 +51,4 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add README.md
-          git commit -m "update README.md" && git push || echo "no change"
+          git commit -m "Update README.md" && git push || echo "No Change"

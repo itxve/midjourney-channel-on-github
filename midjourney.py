@@ -1,20 +1,21 @@
-import requests, re, os, json
+import requests, re, os
 
 
-config = os.getenv("MIDJOURNEY_CONFIG")
-print("env: %s" % config)
-config = json.loads(config)
-channelUrl = config["channelUrl"]
-authorization = config["authorization"]
-limit = 50
-if "limit" in config:
-    limit = config["limit"]
+channelUrl = os.getenv("Channel")
+authorization = os.getenv("Authorization")
+count = os.getenv("Count")
 
-showCount = 10
-if "showCount" in config:
-    showCount = config["showCount"]
-    if showCount > 20:
-        showCount = 20
+print(
+    "count: %s ,channerl %s ,authorization : %s , input_token : %s"
+    % (count, channelUrl, authorization, count)
+)
+
+
+if count is not None:
+    if count > 200:
+        count = 200
+else:
+    count = 20
 
 
 #
@@ -29,7 +30,7 @@ def get_channel(url):
 
 
 channel = get_channel(channelUrl)
-headers = {"authorization": config["authorization"]}
+headers = {"authorization": authorization}
 
 
 # some functions
@@ -107,11 +108,23 @@ def data2map_list(data):
     return before_id, f_list
 
 
+def write2file(data):
+    with open("README.md", "w") as reme:
+        text = """<p style="display:flex;flex-direction:column;">"""
+        for img_text in data:
+            url = img_text["proxy_url"]
+            content = img_text["content"]
+            content = f"""{content}"""
+            text += f"""<img src="{url}" title="{content}" />"""
+        text += "</p>"
+        reme.write(text)
+
+
 if __name__ == "__main__":
-    limit = 5  # 老年人
+    limit = 50
 
     def fetch(ls, before_id=None):
-        if len(ls) >= showCount:
+        if len(ls) >= count:
             return
         rt = get_data(limit, headers, before=before_id)
         if rt is not None and len(rt) > 0:
@@ -120,10 +133,10 @@ if __name__ == "__main__":
                 fetch(ls, before_id)
             else:
                 ls += f_list
-                if len(ls) < showCount:
+                if len(ls) < count:
                     fetch(ls, before_id)
 
     arr = []
     fetch(arr)
-
     # 写入readme
+    write2file(arr)
