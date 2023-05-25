@@ -1,4 +1,4 @@
-import requests, re, os
+import requests, re, os, time
 
 
 channelUrl = os.getenv("Channel")
@@ -86,6 +86,25 @@ def data2map_dict(data):
     return f_data
 
 
+class ImageInfo:
+    def __init__(self, content, proxy_url, url):
+        self.content = content
+        self.proxy_url = proxy_url
+        self.url = url
+
+    def __hash__(self):
+        return hash(id(self.content))
+
+    def __str__(self):
+        return "content:%s , proxy_url:%d" % (self.content, self.proxy_url)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return hash(id(self.content)) == hash(id(other.content))
+        else:
+            return False
+
+
 def data2map_list(data):
     f_list = []
     before_id = None
@@ -100,21 +119,20 @@ def data2map_list(data):
 
             def map_data(attachment):
                 proxy_url = attachment["proxy_url"]
-                real_url = attachment["url"]
-                obj = {"content": content, "proxy_url": proxy_url, "real_url": real_url}
-                return obj
+                url = attachment["url"]
+                return ImageInfo(content, proxy_url, url)
 
             f_list += list(map(map_data, item["attachments"]))
 
     return before_id, f_list
 
 
-def write2file(data):
+def write2file(data: set[ImageInfo]):
     with open("README.md", "w") as reme:
         text = """<p style="display:flex;flex-direction:column;">"""
-        for img_text in data:
-            url = img_text["proxy_url"]
-            content = img_text["content"]
+        for img in data:
+            url = img.url
+            content = img.content
             content = f"""{content}"""
             text += f"""<img src="{url}" title="{content}" />"""
         text += "</p>"
@@ -124,20 +142,21 @@ def write2file(data):
 if __name__ == "__main__":
     limit = 50
 
-    def fetch(ls, before_id=None):
-        if len(ls) >= count:
+    def fetch(set_list: set[ImageInfo], before_id=None):
+        if len(set_list) >= count:
             return
+        time.sleep(1.5)
         rt = get_data(limit, headers, before=before_id)
         if rt is not None and len(rt) > 0:
             before_id, f_list = data2map_list(rt)
             if len(f_list) == 0:
-                fetch(ls, before_id)
+                fetch(set_list, before_id)
             else:
-                ls += f_list
-                if len(ls) < count:
-                    fetch(ls, before_id)
+                set_list |= set(f_list)
+                if len(set_list) < count:
+                    fetch(set_list, before_id)
 
-    arr = []
-    fetch(arr)
+    slist = set()
+    fetch(slist)
     # 写入readme
-    write2file(arr)
+    write2file(slist)
