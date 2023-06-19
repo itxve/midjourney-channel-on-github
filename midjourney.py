@@ -6,8 +6,8 @@ authorization = os.getenv("Authorization")
 count = os.getenv("Count")
 
 print(
-    "count: %s ,channerl %s ,authorization : %s , input_token : %s"
-    % (count, channelUrl, authorization, count)
+    "count: %s ,channerl %s , input_token : %s"
+    % (count, channelUrl, count)
 )
 
 
